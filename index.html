@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Fool</title>
+<style>
+:root{
+  --bg:#08080c; --panel:#0e0e15; --panel2:#12121b; --line:#1d1d29; --fg:#e6e6ee; --dim:#8b8b9a; --code:#c9d1d9;
+  --acid:#7cff6b; --mag:#ff2bd6; --cyan:#27f0ff; --red:#ff4d5e;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:var(--mono);font-size:14px;line-height:1.5}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;opacity:.28;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0 1px,transparent 1px 3px)}
+#app{height:100vh;height:100dvh;display:grid;grid-template-columns:210px minmax(0,1fr) 390px;grid-template-rows:auto minmax(0,1fr);gap:1px;background:var(--line)}
+header{grid-column:1/-1;background:var(--panel);display:flex;align-items:center;gap:14px;padding:8px 14px;flex-wrap:wrap}
+h1{position:relative;margin:0;font-size:22px;letter-spacing:.1em;display:inline-block;color:var(--fg)}
+h1::before,h1::after{content:attr(data-text);position:absolute;inset:0;overflow:hidden}
+h1::before{color:var(--mag);transform:translate(1px,0);clip-path:inset(0 0 55% 0);animation:g1 2.6s infinite steps(1)}
+h1::after{color:var(--cyan);transform:translate(-1px,0);clip-path:inset(55% 0 0 0);animation:g2 3.1s infinite steps(1)}
+@keyframes g1{0%,88%,100%{transform:translate(1px,0)}90%{transform:translate(-4px,1px)}94%{transform:translate(3px,-1px)}}
+@keyframes g2{0%,80%,100%{transform:translate(-1px,0)}83%{transform:translate(5px,0)}91%{transform:translate(-3px,1px)}}
+#sub{color:var(--dim);font-size:12px;flex:1 1 200px}
+#sub b{color:var(--acid)}
+.ctl{display:flex;gap:10px;align-items:center;color:var(--dim);font-size:12px}
+.ctl label{display:flex;gap:6px;align-items:center;cursor:pointer}
+button{background:#14141c;border:1px solid #2b2b3a;color:var(--fg);padding:7px 12px;font:inherit;cursor:pointer}
+button:hover:not(:disabled){border-color:#454560}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+button.go{border-color:var(--acid);color:var(--acid)}
+#tree{background:var(--panel);overflow:auto;padding:8px 0}
+#tree h2,#chat h2{margin:0 0 6px;padding:0 12px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);font-weight:600}
+#tree button{display:flex;width:100%;justify-content:space-between;gap:8px;border:0;border-left:3px solid transparent;background:none;padding:5px 12px;text-align:left;color:var(--code);font-size:13px;overflow-wrap:anywhere}
+#tree button.on{background:#17172280;border-left-color:var(--acid)}
+#tree .flag{color:var(--mag);font-size:11px;flex:none}
+#codewrap{background:var(--bg);display:flex;flex-direction:column;min-width:0;position:relative}
+#filebar{display:flex;align-items:center;gap:10px;background:var(--panel2);padding:6px 12px;border-bottom:1px solid var(--line)}
+#fname{color:var(--cyan);flex:1;overflow-wrap:anywhere}
+#filesel{display:none;background:#14141c;color:var(--fg);border:1px solid #2b2b3a;padding:5px;font:inherit;max-width:60%}
+#code{position:relative;flex:1;min-height:0;overflow:auto;padding:6px 0}
+.line{display:flex;white-space:pre;color:var(--code);font-size:13px;line-height:1.55}
+.line .no{flex:none;width:52px;padding-right:12px;text-align:right;color:#4d4d60;user-select:none}
+.line .src{flex:1;padding-right:20px}
+.line.haunt{background:rgba(255,43,214,.2);box-shadow:inset 3px 0 0 var(--mag)}
+.line.ref{background:rgba(39,240,255,.15);box-shadow:inset 3px 0 0 var(--cyan)}
+.line.scar .src{text-decoration:underline wavy rgba(255,77,94,.75);text-underline-offset:3px}
+#bootmsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--acid);white-space:pre-wrap;padding:20px;background:var(--bg);z-index:4}
+.ghost{position:absolute;right:16px;max-width:min(440px,78%);z-index:6;padding:10px 13px;background:#1b0b1d;border:1px solid var(--mag);
+  box-shadow:0 0 26px rgba(255,43,214,.4);cursor:pointer;animation:fly .45s cubic-bezier(.2,.9,.2,1) both}
+.ghost .gk{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mag);margin-bottom:2px}
+.ghost .gt{font-size:15px;overflow-wrap:anywhere}
+.ghost .gr{margin-top:6px;font-size:11px;color:var(--dim);border-top:1px solid #3a1d3d;padding-top:5px;overflow-wrap:anywhere}
+.ghost .gr b{color:var(--cyan);font-weight:600}
+.ghost.linger{animation:fly .45s cubic-bezier(.2,.9,.2,1) both,flick 1.9s infinite .6s}
+.ghost.out{animation:fade .8s forwards}
+@keyframes fly{0%{opacity:0;transform:translateX(140px) skewX(18deg)}55%{opacity:1;transform:translateX(-10px) skewX(-7deg)}100%{opacity:1;transform:none}}
+@keyframes fade{to{opacity:0;transform:translateY(-16px) scale(.97);filter:blur(3px)}}
+@keyframes flick{0%,100%{opacity:1}44%{opacity:1}48%{opacity:.45}52%{opacity:1}}
+body.shake #codewrap{animation:sh .4s}
+@keyframes sh{0%,100%{transform:none}20%{transform:translate(-4px,2px)}40%{transform:translate(5px,-2px)}60%{transform:translate(-3px,-1px)}80%{transform:translate(3px,2px)}}
+#chat{background:var(--panel);display:flex;flex-direction:column;min-height:0;padding-top:10px}
+#log{flex:1;overflow:auto;padding:0 12px 10px;display:flex;flex-direction:column;gap:10px}
+.msg{padding:8px 10px;border-left:3px solid var(--acid);background:var(--panel2);overflow-wrap:anywhere}
+.msg.you{border-left-color:#4a4a5c;color:var(--dim)}
+.msg.glitch{border-left-color:var(--cyan)}
+.msg .tag{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:2px}
+.msg .text{white-space:pre-wrap}
+.msg.glitch .text{animation:jit .25s infinite steps(2)}
+@keyframes jit{0%{transform:translate(0,0)}50%{transform:translate(1px,-1px)}100%{transform:translate(-1px,1px)}}
+.receipts{margin-top:7px;display:flex;flex-direction:column;gap:4px}
+.chip{display:block;width:100%;text-align:left;font-size:11.5px;color:var(--dim);border:1px solid #262633;padding:3px 7px;background:#0a0a10;overflow-wrap:anywhere}
+.chip b{color:var(--cyan);font-weight:600}
+.pending .bar{height:5px;background:#1b1b26;margin-top:6px}
+.pending .bar i{display:block;height:100%;width:12%;background:var(--acid)}
+form{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+input[type=text]{flex:1;min-width:0;background:var(--panel2);border:1px solid #2b2b3a;color:var(--fg);padding:10px;font:inherit}
+.foot{padding:0 12px 10px;color:var(--dim);font-size:11px}
+@media (max-width:980px){
+  #app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 42vh minmax(0,1fr)}
+  #tree{display:none}
+  #filesel{display:block}
+  .ghost{right:8px;max-width:92%}
+}
+@media (prefers-reduced-motion:reduce){
+  h1::before,h1::after{animation:none}.ghost,.ghost.linger,body.shake #codewrap,.msg.glitch .text{animation:none}
+  .ghost.out{animation:none;opacity:0}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1 data-text="THE FOOL">THE FOOL</h1>
+    <span id="sub">waking up...</span>
+    <div class="ctl">
+      <label><input type="checkbox" id="voice"> speak aloud (browser voice)</label>
+      <button type="button" id="summon" disabled title="Make it haunt you right now">summon</button>
+    </div>
+  </header>
+  <nav id="tree" aria-label="Files"><h2>files</h2><div id="treelist"></div></nav>
+  <main id="codewrap">
+    <div id="filebar"><span id="fname">...</span><select id="filesel" aria-label="Choose a file"></select></div>
+    <div id="code" tabindex="0" aria-label="Code of the watched repository"></div>
+    <div id="bootmsg" aria-live="polite"></div>
+  </main>
+  <section id="chat" aria-label="Chat">
+    <h2>ask me</h2>
+    <div id="log" aria-live="polite"></div>
+    <form id="form" autocomplete="off">
+      <input type="text" id="q" maxlength="300" placeholder="ask me about the repo..." aria-label="Ask about the repo" disabled>
+      <button class="go" id="send" disabled>ask</button>
+    </form>
+    <div class="foot">Runs on this machine. Read-only. The glitches are staged; the haunts are real.</div>
+  </section>
+</div>
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var state = {list: [], inRepo: {}, current: null, cache: {}, scars: {}, busy: false, ready: false, ghost: null, timer: null};
+  var codeEl = $("code"), log = $("log"), q = $("q"), send = $("send"), summon = $("summon");
+
+  function el(tag, cls, text){ var n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; }
+  function getJSON(url){ return fetch(url).then(function(r){ return r.json(); }); }
+
+  /* ---------- code pane ---------- */
+  function loadFile(path){
+    if (state.cache[path]) return Promise.resolve(state.cache[path]);
+    return getJSON("/api/file?path=" + encodeURIComponent(path)).then(function(d){ state.cache[path] = d.lines || []; return state.cache[path]; });
+  }
+  function renderFile(path, lines){
+    state.current = path;
+    $("fname").textContent = path;
+    $("filesel").value = path;
+    Array.prototype.forEach.call($("treelist").children, function(b){ b.classList.toggle("on", b.dataset.path === path); });
+    var frag = document.createDocumentFragment(), scars = state.scars[path] || {};
+    lines.forEach(function(text, i){
+      var row = el("div", "line" + (scars[i + 1] ? " scar" : ""));
+      row.appendChild(el("span", "no", String(i + 1)));
+      row.appendChild(el("span", "src", text || " "));
+      frag.appendChild(row);
+    });
+    codeEl.textContent = "";
+    codeEl.appendChild(frag);
+    codeEl.scrollTop = 0;
+  }
+  function showFile(path, line, mode){
+    return loadFile(path).then(function(lines){
+      if (state.current !== path) renderFile(path, lines);
+      Array.prototype.forEach.call(codeEl.querySelectorAll(".line.ref,.line.haunt"), function(n){ n.classList.remove("ref", "haunt"); });
+      var node = line ? codeEl.children[line - 1] : null;
+      if (node){
+        node.classList.add(mode);
+        if (mode === "haunt"){ (state.scars[path] = state.scars[path] || {})[line] = true; node.classList.add("scar"); }
+        node.scrollIntoView({block: "center", behavior: "auto"});
+      }
+      return node;
+    });
+  }
+
+  /* ---------- haunts: fly in, then fade ---------- */
+  function speak(text, onend){
+    if (!$("voice").checked || !("speechSynthesis" in window)) return false;
+    try {
+      speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.85; u.pitch = 0.6; u.onend = onend; u.onerror = onend;
+      speechSynthesis.speak(u);
+      return true;
+    } catch (e) { return false; }
+  }
+  function endGhost(g){
+    if (!g || g.dataset.gone) return;
+    g.dataset.gone = "1";
+    g.classList.add("out");
+    setTimeout(function(){ if (g.parentNode) g.parentNode.removeChild(g); if (state.ghost === g) state.ghost = null; }, reduce ? 50 : 850);
+  }
+  function placeGhost(g, node){
+    var pane = $("codewrap").getBoundingClientRect(), h = g.offsetHeight, y;
+    if (node){
+      var r = node.getBoundingClientRect();
+      y = r.top - pane.top + 26;
+      if (y + h > pane.height - 10) y = r.top - pane.top - h - 8;
+    } else { y = pane.height * 0.3; }
+    g.style.top = Math.max(44, Math.min(y, pane.height - h - 10)) + "px";
+  }
+  function spawnGhost(h, node){
+    if (state.ghost) endGhost(state.ghost);
+    var g = el("div", "ghost" + (h.linger ? " linger" : ""));
+    g.setAttribute("role", "status");
+    g.appendChild(el("span", "gk", h.kind.replace(/_/g, " ")));
+    g.appendChild(el("span", "gt", h.text));
+    var rc = h.receipt, gr = el("div", "gr");
+    gr.appendChild(el("b", "", rc.file + (rc.line ? ":" + rc.line : "")));
+    gr.appendChild(document.createTextNode("  " + (rc.text && rc.text !== rc.file ? rc.text : "") + (rc.when ? "  (" + rc.when + ")" : "")));
+    g.appendChild(gr);
+    g.addEventListener("click", function(){ endGhost(g); });
+    $("codewrap").appendChild(g);
+    state.ghost = g;
+    placeGhost(g, node);
+    var base = 3800 + h.text.length * 60;
+    if (h.linger){ setTimeout(function(){ endGhost(g); }, base * 3.2); return; }   // some haunts stay to haunt you
+    var spoken = speak(h.text, function(){ setTimeout(function(){ endGhost(g); }, 700); });
+    setTimeout(function(){ endGhost(g); }, spoken ? 25000 : base);
+  }
+  function haunt(){
+    if (state.busy || !state.ready) return;
+    getJSON("/api/haunt").then(function(d){
+      if (!d.haunt){ schedule(); return; }
+      var h = d.haunt, rc = h.receipt;
+      document.body.classList.add("shake");
+      setTimeout(function(){ document.body.classList.remove("shake"); }, 450);
+      var go = state.inRepo[rc.file] ? showFile(rc.file, rc.line, "haunt") : Promise.resolve(null);
+      go.then(function(node){ spawnGhost(h, node); schedule(); });
+    }).catch(schedule);
+  }
+  function schedule(first){
+    clearTimeout(state.timer);
+    var ms = first ? 9000 + Math.random() * 7000 : 30000 + Math.random() * 45000;
+    state.timer = setTimeout(function(){ document.hidden ? schedule() : haunt(); }, ms);
+  }
+
+  /* ---------- chat: only questions and answers stay ---------- */
+  function addMsg(kind, tag, text, receipts){
+    var m = el("div", "msg " + kind);
+    m.appendChild(el("span", "tag", tag));
+    m.appendChild(el("div", "text", text));
+    if (receipts && receipts.length){
+      var box = el("div", "receipts");
+      receipts.forEach(function(r){
+        var c = el("button", "chip");
+        c.type = "button";
+        c.appendChild(el("b", "", r.file + (r.line ? ":" + r.line : "")));
+        c.appendChild(document.createTextNode("  " + (r.text && r.text !== r.file ? r.text : "") + (r.when ? "  (" + r.when + ")" : "")));
+        if (state.inRepo[r.file]) c.addEventListener("click", function(){ showFile(r.file, r.line, "ref"); });
+        else c.disabled = true;
+        box.appendChild(c);
+      });
+      m.appendChild(box);
+    }
+    log.appendChild(m);
+    log.scrollTop = log.scrollHeight;
+    return m;
+  }
+  function ask(question){
+    state.busy = true; send.disabled = true; q.disabled = true; summon.disabled = true;
+    addMsg("you", "you", question);
+    var wait = addMsg("pending", "thinking", "loading brain... 12%");
+    var bar = el("div", "bar"); bar.appendChild(el("i")); wait.appendChild(bar);
+    fetch("/api/ask", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({question: question})})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        wait.remove();
+        var tag, kind = "";
+        if (d.mode === "gibberish"){ kind = "glitch"; tag = "glitch · not an answer"; }
+        else if (d.mode === "asleep"){ tag = "asleep"; }
+        else if (d.source === "index"){ tag = "counted, not guessed"; }
+        else if (d.source === "scanner"){ tag = "from my scan · click a receipt"; }
+        else { tag = d.verified ? (d.receipts && d.receipts.length ? "answer · click a receipt" : "answer") : "unverified · no receipts"; }
+        addMsg(kind, tag + (d.seconds ? " · " + d.seconds + "s" : ""), d.answer, d.receipts);
+        if (d.mode !== "asleep") speak(d.answer, function(){});
+        if (d.receipts && d.receipts.length && state.inRepo[d.receipts[0].file] && d.receipts[0].line) showFile(d.receipts[0].file, d.receipts[0].line, "ref");
+      })
+      .catch(function(){ wait.remove(); addMsg("glitch", "glitch", "the line went dead."); })
+      .then(function(){ state.busy = false; send.disabled = false; q.disabled = false; summon.disabled = false; q.focus(); });
+  }
+  $("form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var v = q.value.trim();
+    if (!v || state.busy) return;
+    q.value = ""; ask(v);
+  });
+  summon.addEventListener("click", haunt);
+  $("filesel").addEventListener("change", function(){ showFile(this.value, 0, "ref"); });
+
+  /* ---------- start ---------- */
+  function bootLines(lines, done){
+    var i = 0, box = $("bootmsg");
+    box.textContent = "";
+    (function next(){
+      if (i >= lines.length){ done(); return; }
+      box.textContent += lines[i++] + "\n";
+      setTimeout(next, reduce ? 0 : 380 + Math.random() * 320);
+    })();
+  }
+  getJSON("/api/info").then(function(info){
+    state.list = info.list || [];
+    var tl = $("treelist"), sel = $("filesel");
+    state.list.forEach(function(f){
+      state.inRepo[f.path] = true;
+      var b = el("button", ""); b.type = "button"; b.dataset.path = f.path;
+      b.appendChild(el("span", "", f.path));
+      if (f.flags) b.appendChild(el("span", "flag", "! " + f.flags));
+      b.addEventListener("click", function(){ showFile(f.path, 0, "ref"); });
+      tl.appendChild(b);
+      var o = el("option", "", f.path + (f.flags ? "  (!" + f.flags + ")" : "")); o.value = f.path; sel.appendChild(o);
+    });
+    var sub = $("sub");
+    sub.textContent = "watching ";
+    sub.appendChild(el("b", "", info.repo));
+    sub.appendChild(document.createTextNode(" · " + info.files + " files · " + info.findings + " things I know about you"));
+    bootLines(["loading brain... 12%", "loading brain... 12%", "ERROR: brain not found", "continuing anyway", "reading " + info.files + " files... done.", "i remember all of them."], function(){
+      $("bootmsg").style.display = "none";
+      state.ready = true; q.disabled = false; send.disabled = false; summon.disabled = false;
+      if (state.list.length) showFile(state.list[0].path, 0, "ref");
+      addMsg("", "the fool", "hello. i am very smart. ask me something. or don't. i am watching either way.");
+      schedule(true);
+    });
+  }).catch(function(){ $("bootmsg").textContent = "the server is gone. start fool_server.py again."; });
+})();
+</script>
+</body>
+</html>

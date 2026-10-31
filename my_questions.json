@@ -1,0 +1,22 @@
+[
+ {"q": "Where is the burnout score calculated?", "file": "insights.py"},
+ {"q": "Which file imports flask_login?", "file": "app.py"},
+ {"q": "Where are the database models defined?", "file": "models.py"},
+ {"q": "Where is user login handled?", "file": "auth.py"},
+ {"q": "Where is the streak function defined?", "file": "app.py"},
+ {"q": "Where are the comparison APIs defined?", "file": "app.py"},
+ {"q": "Where are the login_user and logout_user imported?", "file": "app.py"},
+ {"q": "In which file is the authentication test done?", "file": "test_auth_smoke.py"},
+ {"q": "In which file is the timer test written?", "file": "test_smoke.py"},
+ {"q": "In which file is the authentication file written?", "file": "auth.py"},
+ {"q": "Where is the average duration calculated?", "file": "insights.py"},
+ {"q": "Where are the user's insight calculated?", "file": "insights.py"},
+ {"q": "Where is the Alert model defined?", "file": "models.py"},
+ {"q": "Which file contains start_timer?", "file": "timer.py"},
+ {"q": "Where are the end_timer and resume timer defined?", "file": "timer.py"},
+ {"q": "Which file calculates persona; baseline?", "file": "insighst.py"},
+ {"q": "Where is recommendations function defined?", "file": "insights.py"},
+ {"q": "Where is the delete user defined?", "file": "app.py"},
+ {"q": "Where is the update user defined?", "file": "app.py"},
+ {"q": "In which file is the session created?", "file": "app.py"}
+]
