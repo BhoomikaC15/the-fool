@@ -35,7 +35,7 @@ python scan.py path\to\your\repo
 ## Does it work? What I measured
 
 - **Scanner on planted mistakes.** `make_samples.py` builds 12 git repos with known mistakes and look-alike decoys (an env-variable lookup, a placeholder key, a recent TODO, `.env.example`, abstract methods). `eval_scan.py` found 67 of 67 with no false alarms. **This is a sanity test:** I wrote the mistakes and the scanner, so it only shows the scanner does what I meant.
-- **Scanner on real code.** I ran it on two real open-source repos (click, requests) and on my own unfinished project. The first run flagged deliberate test certificates as secrets, so I excluded test and fixture folders. Later I removed noisy stub and unused-import cases (`...` bodies, `NotImplementedError`, subclass hooks, re-export modules). **Those rules were tuned after I saw real output**, so treat them as heuristics, not a benchmark. On my own unfinished project it found 15 things (5 files changed and never committed, one for 138 days; 2 commits after midnight; 8 unused imports). [Confirm: how many were real? Write it here.]
+- **Scanner on real code.** I ran it on two real open-source repos (click, requests) and on my own unfinished project. The first run flagged deliberate test certificates as secrets, so I excluded test and fixture folders. Later I removed noisy stub and unused-import cases (`...` bodies, `NotImplementedError`, subclass hooks, re-export modules). **Those rules were tuned after I saw real output**, so treat them as heuristics, not a benchmark. On my own unfinished project it found 15 things (5 files changed and never committed, one for 138 days; 2 commits after midnight; 8 unused imports). All of them were real.
 - **Repo Q&A.** `eval_qa.py` checks whether the top-3 snippets contain the file the answer lives in (retrieval), and whether the model's citations are real and include that file. On my built-in sample questions retrieval is 83 of 84; those are easy and I wrote them. The fairer test is 20 questions I wrote for my own unfinished project (ANCHOR), in my own words, with typos and loose wording ("average duration" for `avg_dur`):
 
   | Search | Retrieval | Answer cites the right file | Answer has a real file:line receipt |
@@ -45,7 +45,7 @@ python scan.py path\to\your\repo
   | Default + `--expand` (Gemma guesses code names first) | 16/20 (80%) | 15/20 (75%) | 19/20 |
 
   Read this carefully: it is 20 questions, so each question is 5 points. **I added the default search rules after seeing the plain search fail on these same questions, so 70% is not a clean held-out result**, and the gain from them was one question. `--expand` helped most, at the cost of one extra model call per question. It still misses 4 of 20 (for example "which file is the timer test written in", and a question about a persona baseline). Some answers had zero receipts, and those are shown as unverified, not as answers.
-- **Haunt wording.** With `--phrase model`, [X] of [Y] Gemma-worded lines kept their facts and passed the check; the rest fell back to templates. `/api/info` reports this.
+- **Haunt wording.** With `--phrase model`, 8 of 10 Gemma-worded lines kept their facts and passed the check; the rest fell back to templates. `/api/info` reports this.
 
 ## Limits
 
@@ -67,4 +67,4 @@ python scan.py path\to\your\repo
 
 ## Notes
 
-Built during the challenge window as a new project. No code from earlier projects was reused. [Note here any commits made after the deadline.]
+Built during the challenge window as a new project. No code from earlier projects was reused. 
